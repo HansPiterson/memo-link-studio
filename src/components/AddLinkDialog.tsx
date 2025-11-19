@@ -46,14 +46,34 @@ const AddLinkDialog = ({ userId, onLinkAdded }: AddLinkDialogProps) => {
     try {
       const category = detectCategory(url);
       
+      // Fetch metadata including thumbnail
+      let fetchedTitle = title;
+      let thumbnailUrl = null;
+      
+      try {
+        const metadataResponse = await supabase.functions.invoke('fetch-link-metadata', {
+          body: { url }
+        });
+
+        if (metadataResponse.data) {
+          thumbnailUrl = metadataResponse.data.thumbnail_url;
+          if (!title && metadataResponse.data.title) {
+            fetchedTitle = metadataResponse.data.title;
+          }
+        }
+      } catch (metadataError) {
+        console.log("Failed to fetch metadata:", metadataError);
+        // Continue without thumbnail
+      }
+      
       const { error } = await supabase
         .from("links")
         .insert({
           user_id: userId,
           url,
-          title: title || null,
+          title: fetchedTitle || null,
           category,
-          thumbnail_url: null, // Untuk demo, bisa dikembangkan lebih lanjut
+          thumbnail_url: thumbnailUrl,
         });
 
       if (error) throw error;

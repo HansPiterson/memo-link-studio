@@ -66,7 +66,7 @@ const AddLinkDialog = ({ userId, onLinkAdded }: AddLinkDialogProps) => {
         // Continue without thumbnail
       }
       
-      const { error } = await supabase
+      const { data: linkData, error } = await supabase
         .from("links")
         .insert({
           user_id: userId,
@@ -74,14 +74,43 @@ const AddLinkDialog = ({ userId, onLinkAdded }: AddLinkDialogProps) => {
           title: fetchedTitle || null,
           category,
           thumbnail_url: thumbnailUrl,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast({
-        title: "Link berhasil ditambahkan",
-        description: `Kategori: ${category}`,
-      });
+      // If it's an Instagram image post, trigger download
+      if (linkData && url.includes("instagram.com/p/")) {
+        try {
+          const downloadResponse = await supabase.functions.invoke('download-instagram-images', {
+            body: { url, linkId: linkData.id }
+          });
+
+          if (downloadResponse.data?.success) {
+            toast({
+              title: "Link dan gambar berhasil disimpan",
+              description: `${downloadResponse.data.downloaded} gambar diunduh ke galeri`,
+            });
+          } else {
+            toast({
+              title: "Link berhasil ditambahkan",
+              description: `Kategori: ${category}`,
+            });
+          }
+        } catch (downloadError) {
+          console.log("Failed to download images:", downloadError);
+          toast({
+            title: "Link berhasil ditambahkan",
+            description: `Kategori: ${category}. Gagal mengunduh gambar.`,
+          });
+        }
+      } else {
+        toast({
+          title: "Link berhasil ditambahkan",
+          description: `Kategori: ${category}`,
+        });
+      }
 
       setUrl("");
       setTitle("");

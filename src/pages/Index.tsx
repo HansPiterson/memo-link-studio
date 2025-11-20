@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Link2, Search } from "lucide-react";
+import { LogOut, Link2, Search, Image } from "lucide-react";
 import LinkCard from "@/components/LinkCard";
 import AddLinkDialog from "@/components/AddLinkDialog";
 import { Input } from "@/components/ui/input";
@@ -162,7 +162,17 @@ const Index = () => {
                 {links.length} link tersimpan
               </p>
             </div>
-            <AddLinkDialog userId={user.id} onLinkAdded={fetchLinks} />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/gallery")}
+                className="gap-2"
+              >
+                <Image className="w-4 h-4" />
+                Galeri
+              </Button>
+              <AddLinkDialog userId={user.id} onLinkAdded={fetchLinks} />
+            </div>
           </div>
 
           {/* Search */}

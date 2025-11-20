@@ -28,15 +28,37 @@ const LinkCard = ({
     locale: localeId,
   });
 
+  // Decode HTML entities in case any slipped through
+  const decodeHtml = (html: string) => {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  };
+
+  const displayTitle = title ? decodeHtml(title) : "Untitled Link";
+  const displayThumbnail = thumbnail_url ? decodeHtml(thumbnail_url) : null;
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden h-full flex flex-col">
       {/* Thumbnail */}
       <div className="relative w-full aspect-square bg-muted overflow-hidden">
-        {thumbnail_url ? (
+        {displayThumbnail ? (
           <img
-            src={thumbnail_url}
-            alt={title || "Link thumbnail"}
+            src={displayThumbnail}
+            alt={displayTitle}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              // Hide broken images
+              e.currentTarget.style.display = 'none';
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                const fallback = document.createElement('div');
+                fallback.className = 'w-full h-full flex items-center justify-center';
+                fallback.innerHTML = '<svg class="w-12 h-12 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+                parent.appendChild(fallback);
+              }
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -70,7 +92,7 @@ const LinkCard = ({
       {/* Content */}
       <CardContent className="p-3 flex-1 flex flex-col">
         <h3 className="font-medium text-sm line-clamp-2 mb-2 min-h-[2.5rem]">
-          {title || "Untitled Link"}
+          {displayTitle}
         </h3>
         
         <p className="text-xs text-muted-foreground truncate mb-3">

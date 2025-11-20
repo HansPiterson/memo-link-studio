@@ -5,6 +5,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Function to decode HTML entities
+function decodeHtmlEntities(text: string): string {
+  const entities: { [key: string]: string } = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'",
+    '&#64;': '@',
+    '&#x2F;': '/',
+  };
+  
+  let decoded = text;
+  
+  // Replace named entities
+  for (const [entity, char] of Object.entries(entities)) {
+    decoded = decoded.replaceAll(entity, char);
+  }
+  
+  // Replace numeric entities (decimal)
+  decoded = decoded.replace(/&#(\d+);/g, (_, dec) => 
+    String.fromCodePoint(parseInt(dec, 10))
+  );
+  
+  // Replace numeric entities (hex)
+  decoded = decoded.replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) => 
+    String.fromCodePoint(parseInt(hex, 16))
+  );
+  
+  return decoded;
+}
+
+// Function to parse Instagram title
+function parseInstagramTitle(title: string): { author: string; caption: string } {
+  // Decode HTML entities first
+  const decoded = decodeHtmlEntities(title);
+  
+  // Pattern: "username on Instagram: "caption""
+  const match = decoded.match(/^(.+?)\s+on\s+Instagram:\s*[""](.+?)[""]?$/i);
+  
+  if (match) {
+    return {
+      author: match[1].trim(),
+      caption: match[2].trim(),
+    };
+  }
+  
+  // Fallback: use the full decoded title
+  return {
+    author: "",
+    caption: decoded,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -25,16 +79,26 @@ serve(async (req) => {
     // Try Instagram oEmbed API first
     if (url.includes("instagram.com")) {
       try {
-        const oEmbedUrl = `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=`;
-        // Note: Instagram oEmbed doesn't require token for public posts
         const oEmbedResponse = await fetch(`https://api.instagram.com/oembed/?url=${encodeURIComponent(url)}`);
         
         if (oEmbedResponse.ok) {
           const data = await oEmbedResponse.json();
+          const rawTitle = data.title || data.author_name || null;
+          const rawThumbnail = data.thumbnail_url || null;
+          
+          // Parse and decode Instagram title
+          let parsedTitle = rawTitle;
+          if (rawTitle && rawTitle.includes("on Instagram:")) {
+            const parsed = parseInstagramTitle(rawTitle);
+            parsedTitle = parsed.author ? `${parsed.author}: ${parsed.caption}` : parsed.caption;
+          } else if (rawTitle) {
+            parsedTitle = decodeHtmlEntities(rawTitle);
+          }
+          
           return new Response(
             JSON.stringify({
-              title: data.title || data.author_name || null,
-              thumbnail_url: data.thumbnail_url || null,
+              title: parsedTitle,
+              thumbnail_url: rawThumbnail ? decodeHtmlEntities(rawThumbnail) : null,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
@@ -74,10 +138,20 @@ serve(async (req) => {
 
     const thumbnail_url = ogImage || twitterImage;
 
+    // Decode HTML entities in the results
+    let finalTitle = ogTitle ? decodeHtmlEntities(ogTitle) : null;
+    let finalThumbnail = thumbnail_url ? decodeHtmlEntities(thumbnail_url) : null;
+    
+    // Parse Instagram title if detected
+    if (finalTitle && url.includes("instagram.com") && finalTitle.includes("on Instagram:")) {
+      const parsed = parseInstagramTitle(finalTitle);
+      finalTitle = parsed.author ? `${parsed.author}: ${parsed.caption}` : parsed.caption;
+    }
+
     return new Response(
       JSON.stringify({
-        title: ogTitle,
-        thumbnail_url: thumbnail_url,
+        title: finalTitle,
+        thumbnail_url: finalThumbnail,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

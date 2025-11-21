@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ImageLightboxProps {
@@ -7,9 +7,22 @@ interface ImageLightboxProps {
   alt: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
 }
 
-const ImageLightbox = ({ imageUrl, alt, open, onOpenChange }: ImageLightboxProps) => {
+const ImageLightbox = ({ 
+  imageUrl, 
+  alt, 
+  open, 
+  onOpenChange,
+  onPrevious,
+  onNext,
+  hasPrevious,
+  hasNext
+}: ImageLightboxProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
@@ -22,6 +35,29 @@ const ImageLightbox = ({ imageUrl, alt, open, onOpenChange }: ImageLightboxProps
           >
             <X className="w-6 h-6" />
           </Button>
+          
+          {hasPrevious && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full"
+              onClick={onPrevious}
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </Button>
+          )}
+          
+          {hasNext && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full"
+              onClick={onNext}
+            >
+              <ChevronRight className="w-8 h-8" />
+            </Button>
+          )}
+          
           <img
             src={imageUrl}
             alt={alt}

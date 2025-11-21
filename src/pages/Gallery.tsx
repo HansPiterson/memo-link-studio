@@ -34,7 +34,7 @@ const Gallery = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -184,7 +184,8 @@ const Gallery = () => {
                       variant="secondary"
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => {
-                        setSelectedImage(image);
+                        const index = images.findIndex(img => img.id === image.id);
+                        setSelectedImageIndex(index);
                         setLightboxOpen(true);
                       }}
                     >
@@ -225,12 +226,16 @@ const Gallery = () => {
         </div>
       </main>
 
-      {selectedImage && (
+      {images.length > 0 && (
         <ImageLightbox
-          imageUrl={selectedImage.image_url}
-          alt={`Gallery image ${selectedImage.image_index + 1}`}
+          imageUrl={images[selectedImageIndex]?.image_url}
+          alt={`Gallery image ${images[selectedImageIndex]?.image_index + 1}`}
           open={lightboxOpen}
           onOpenChange={setLightboxOpen}
+          onPrevious={() => setSelectedImageIndex(prev => Math.max(0, prev - 1))}
+          onNext={() => setSelectedImageIndex(prev => Math.min(images.length - 1, prev + 1))}
+          hasPrevious={selectedImageIndex > 0}
+          hasNext={selectedImageIndex < images.length - 1}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import UploadImagesDialog from "@/components/UploadImagesDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -138,11 +139,14 @@ const Gallery = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold">Gambar Tersimpan</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {images.length} gambar tersimpan dari Instagram
-            </p>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Gambar Tersimpan</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {images.length} gambar tersimpan
+              </p>
+            </div>
+            <UploadImagesDialog onUploadComplete={fetchGalleryImages} />
           </div>
 
           {images.length === 0 ? (

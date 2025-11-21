@@ -169,9 +169,11 @@ const Gallery = () => {
                 >
                   <img
                     src={image.image_url}
-                    alt={`Instagram image ${image.image_index + 1}`}
+                    alt={`Gallery image ${image.image_index + 1}`}
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center gap-2">
                     <a

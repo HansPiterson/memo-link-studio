@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, X } from "lucide-react";
+import { compressImage } from "@/utils/imageCompression";
 
 interface UploadImagesDialogProps {
   onUploadComplete: () => void;
@@ -51,15 +52,19 @@ const UploadImagesDialog = ({ onUploadComplete }: UploadImagesDialogProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      let successCount = 0;
       for (const file of selectedFiles) {
-        // Upload to storage
-        const fileExt = file.name.split(".").pop();
+        // Compress image sebelum upload
+        const compressedFile = await compressImage(file);
+        
+        // Upload to storage dengan cache control yang panjang
+        const fileExt = 'jpg'; // Always use jpg after compression
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from("gallery-images")
-          .upload(fileName, file, {
-            cacheControl: "3600",
+          .upload(fileName, compressedFile, {
+            cacheControl: '31536000', // Cache 1 tahun
             upsert: false,
           });
 
@@ -81,11 +86,12 @@ const UploadImagesDialog = ({ onUploadComplete }: UploadImagesDialogProps) => {
           });
 
         if (dbError) throw dbError;
+        successCount++;
       }
 
       toast({
         title: "Berhasil",
-        description: `${selectedFiles.length} gambar berhasil diupload`,
+        description: `${successCount} gambar berhasil diupload dan dikompresi`,
       });
 
       setSelectedFiles([]);

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UploadImagesDialog from "@/components/UploadImagesDialog";
+import ImageLightbox from "@/components/ImageLightbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,8 @@ const Gallery = () => {
   const [user, setUser] = useState<User | null>(null);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -176,16 +179,17 @@ const Gallery = () => {
                     fetchPriority="low"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center gap-2">
-                    <a
-                      href={image.instagram_post_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      size="sm"
+                      variant="secondary"
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        setSelectedImage(image);
+                        setLightboxOpen(true);
+                      }}
                     >
-                      <Button size="sm" variant="secondary">
-                        Lihat Post
-                      </Button>
-                    </a>
+                      Lihat Poto
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -220,6 +224,15 @@ const Gallery = () => {
           )}
         </div>
       </main>
+
+      {selectedImage && (
+        <ImageLightbox
+          imageUrl={selectedImage.image_url}
+          alt={`Gallery image ${selectedImage.image_index + 1}`}
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+        />
+      )}
     </div>
   );
 };

@@ -21,6 +21,7 @@ export type Database = {
           image_index: number | null
           image_url: string
           instagram_post_url: string | null
+          is_public: boolean
           link_id: string | null
           storage_path: string
           user_id: string
@@ -31,6 +32,7 @@ export type Database = {
           image_index?: number | null
           image_url: string
           instagram_post_url?: string | null
+          is_public?: boolean
           link_id?: string | null
           storage_path: string
           user_id: string
@@ -41,6 +43,7 @@ export type Database = {
           image_index?: number | null
           image_url?: string
           instagram_post_url?: string | null
+          is_public?: boolean
           link_id?: string | null
           storage_path?: string
           user_id?: string

@@ -99,15 +99,21 @@ const Auth = () => {
             <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username (Opsional)</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
                     id="username"
                     type="text"
                     placeholder="johndoe"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    required
+                    minLength={3}
+                    maxLength={20}
                     className="bg-input border-border/50"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Username akan ditampilkan pada postingan public Anda
+                  </p>
                 </div>
               )}
 

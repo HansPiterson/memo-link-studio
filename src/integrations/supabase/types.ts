@@ -58,35 +58,6 @@ export type Database = {
           },
         ]
       }
-      gallery_likes: {
-        Row: {
-          created_at: string
-          id: string
-          image_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          image_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          image_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gallery_likes_image_id_fkey"
-            columns: ["image_id"]
-            isOneToOne: false
-            referencedRelation: "gallery_images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       links: {
         Row: {
           category: string

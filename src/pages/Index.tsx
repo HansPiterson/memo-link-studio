@@ -8,6 +8,8 @@ import { LogOut, Link2, Search, Image } from "lucide-react";
 import LinkCard from "@/components/LinkCard";
 import AddLinkDialog from "@/components/AddLinkDialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DiscoverFeed from "@/components/DiscoverFeed";
 
 interface Link {
   id: string;
@@ -153,69 +155,81 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Stats & Actions */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Link Saya</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {links.length} link tersimpan
-              </p>
+        <div className="max-w-6xl mx-auto space-y-6">
+          <Tabs defaultValue="links" className="w-full">
+            <div className="flex items-center justify-between mb-6">
+              <TabsList className="bg-muted/50">
+                <TabsTrigger value="links">Link Saya</TabsTrigger>
+                <TabsTrigger value="discover">Discover</TabsTrigger>
+              </TabsList>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/gallery")}
+                  className="gap-2"
+                >
+                  <Image className="w-4 h-4" />
+                  Galeri
+                </Button>
+                <AddLinkDialog userId={user.id} onLinkAdded={fetchLinks} />
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/gallery")}
-                className="gap-2"
-              >
-                <Image className="w-4 h-4" />
-                Galeri
-              </Button>
-              <AddLinkDialog userId={user.id} onLinkAdded={fetchLinks} />
-            </div>
-          </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Cari link..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card/50 border-border/50"
-            />
-          </div>
+            <TabsContent value="links" className="space-y-6 mt-0">
+              {/* Stats */}
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {links.length} link tersimpan
+                </p>
+              </div>
 
-          {/* Links Grid */}
-          {filteredLinks.length === 0 ? (
-            <div className="text-center py-12">
-              <Link2 className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                {searchQuery ? "Tidak ada hasil" : "Belum ada link"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {searchQuery
-                  ? "Coba kata kunci lain"
-                  : "Mulai tambahkan link favorit Anda"}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {filteredLinks.map((link) => (
-                <LinkCard
-                  key={link.id}
-                  id={link.id}
-                  url={link.url}
-                  title={link.title || undefined}
-                  category={link.category}
-                  thumbnail_url={link.thumbnail_url || undefined}
-                  created_at={link.created_at}
-                  onDelete={handleDeleteLink}
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Cari link..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-card/50 border-border/50"
                 />
-              ))}
-            </div>
-          )}
+              </div>
+
+              {/* Links Grid */}
+              {filteredLinks.length === 0 ? (
+                <div className="text-center py-12">
+                  <Link2 className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">
+                    {searchQuery ? "Tidak ada hasil" : "Belum ada link"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {searchQuery
+                      ? "Coba kata kunci lain"
+                      : "Mulai tambahkan link favorit Anda"}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {filteredLinks.map((link) => (
+                    <LinkCard
+                      key={link.id}
+                      id={link.id}
+                      url={link.url}
+                      title={link.title || undefined}
+                      category={link.category}
+                      thumbnail_url={link.thumbnail_url || undefined}
+                      created_at={link.created_at}
+                      onDelete={handleDeleteLink}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="discover" className="mt-0">
+              <DiscoverFeed />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

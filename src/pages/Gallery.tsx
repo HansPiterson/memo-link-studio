@@ -18,6 +18,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Globe, Lock } from "lucide-react";
 
 interface GalleryImage {
   id: string;
@@ -27,6 +34,7 @@ interface GalleryImage {
   image_index: number;
   created_at: string;
   link_id: string;
+  is_public: boolean;
 }
 
 const Gallery = () => {
@@ -89,6 +97,30 @@ const Gallery = () => {
       toast({
         title: "Gambar dihapus",
         description: "Gambar berhasil dihapus dari galeri",
+      });
+
+      fetchGalleryImages();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, currentVisibility: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("gallery_images")
+        .update({ is_public: !currentVisibility })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Visibilitas diubah",
+        description: !currentVisibility ? "Gambar sekarang public" : "Gambar sekarang private",
       });
 
       fetchGalleryImages();
@@ -178,6 +210,52 @@ const Gallery = () => {
                     decoding="async"
                     fetchPriority="low"
                   />
+                  
+                  {/* Visibility indicator */}
+                  <div className="absolute top-2 left-2 z-10">
+                    {image.is_public ? (
+                      <div className="bg-background/80 backdrop-blur-sm rounded-full p-1.5">
+                        <Globe className="w-4 h-4 text-primary" />
+                      </div>
+                    ) : (
+                      <div className="bg-background/80 backdrop-blur-sm rounded-full p-1.5">
+                        <Lock className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Three dot menu */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover">
+                        <DropdownMenuItem
+                          onClick={() => handleToggleVisibility(image.id, image.is_public)}
+                        >
+                          {image.is_public ? (
+                            <>
+                              <Lock className="w-4 h-4 mr-2" />
+                              Jadikan Private
+                            </>
+                          ) : (
+                            <>
+                              <Globe className="w-4 h-4 mr-2" />
+                              Jadikan Public
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center gap-2">
                     <Button
                       size="sm"

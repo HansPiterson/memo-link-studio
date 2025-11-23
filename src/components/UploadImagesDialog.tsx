@@ -17,10 +17,14 @@ import { compressImage } from "@/utils/imageCompression";
 
 interface UploadImagesDialogProps {
   onUploadComplete: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const UploadImagesDialog = ({ onUploadComplete }: UploadImagesDialogProps) => {
-  const [open, setOpen] = useState(false);
+const UploadImagesDialog = ({ onUploadComplete, open: controlledOpen, onOpenChange }: UploadImagesDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();

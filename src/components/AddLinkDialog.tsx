@@ -10,10 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 interface AddLinkDialogProps {
   userId: string;
   onLinkAdded: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const AddLinkDialog = ({ userId, onLinkAdded }: AddLinkDialogProps) => {
-  const [open, setOpen] = useState(false);
+const AddLinkDialog = ({ userId, onLinkAdded, open: controlledOpen, onOpenChange }: AddLinkDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);

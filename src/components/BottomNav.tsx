@@ -5,17 +5,28 @@ import { cn } from "@/lib/utils";
 interface BottomNavProps {
   onLinkClick?: () => void;
   onUploadClick?: () => void;
+  onHomeClick?: () => void;
 }
 
-const BottomNav = ({ onLinkClick, onUploadClick }: BottomNavProps) => {
+const BottomNav = ({ onLinkClick, onUploadClick, onHomeClick }: BottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleHomeClick = () => {
+    if (location.pathname === "/") {
+      // Already on home, just reset to links tab
+      onHomeClick?.();
+    } else {
+      // Navigate to home
+      navigate("/");
+    }
+  };
 
   const navItems = [
     {
       icon: Home,
       label: "Home",
-      onClick: () => navigate("/"),
+      onClick: handleHomeClick,
       isActive: location.pathname === "/",
     },
     {

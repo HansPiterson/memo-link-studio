@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageLightbox from "./ImageLightbox";
+import { Button } from "./ui/button";
 
 interface PublicImage {
   id: string;
@@ -10,6 +11,8 @@ interface PublicImage {
   image_index: number;
   created_at: string;
   user_id: string;
+  like_count: number;
+  user_has_liked: boolean;
 }
 
 const DiscoverFeed = () => {
@@ -17,14 +20,24 @@ const DiscoverFeed = () => {
   const [loading, setLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    getCurrentUser();
     fetchPublicImages();
   }, []);
 
+  const getCurrentUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setCurrentUserId(session?.user?.id || null);
+  };
+
   const fetchPublicImages = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
       const { data, error } = await supabase
         .from("gallery_images")
         .select("id, image_url, image_index, created_at, user_id")
@@ -33,7 +46,34 @@ const DiscoverFeed = () => {
 
       if (error) throw error;
 
-      setImages(data || []);
+      // Fetch like counts and user likes for each image
+      const imagesWithLikes = await Promise.all(
+        (data || []).map(async (image) => {
+          const { count } = await supabase
+            .from("gallery_likes")
+            .select("*", { count: "exact", head: true })
+            .eq("image_id", image.id);
+
+          let userHasLiked = false;
+          if (userId) {
+            const { data: likeData } = await supabase
+              .from("gallery_likes")
+              .select("id")
+              .eq("image_id", image.id)
+              .eq("user_id", userId)
+              .maybeSingle();
+            userHasLiked = !!likeData;
+          }
+
+          return {
+            ...image,
+            like_count: count || 0,
+            user_has_liked: userHasLiked,
+          };
+        })
+      );
+
+      setImages(imagesWithLikes);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -42,6 +82,59 @@ const DiscoverFeed = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleLike = async (imageId: string, currentlyLiked: boolean) => {
+    if (!currentUserId) {
+      toast({
+        title: "Login required",
+        description: "Silakan login untuk memberikan like",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (currentlyLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from("gallery_likes")
+          .delete()
+          .eq("image_id", imageId)
+          .eq("user_id", currentUserId);
+
+        if (error) throw error;
+      } else {
+        // Like
+        const { error } = await supabase
+          .from("gallery_likes")
+          .insert({
+            image_id: imageId,
+            user_id: currentUserId,
+          });
+
+        if (error) throw error;
+      }
+
+      // Update local state
+      setImages((prevImages) =>
+        prevImages.map((img) =>
+          img.id === imageId
+            ? {
+                ...img,
+                user_has_liked: !currentlyLiked,
+                like_count: currentlyLiked ? img.like_count - 1 : img.like_count + 1,
+              }
+            : img
+        )
+      );
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -74,21 +167,39 @@ const DiscoverFeed = () => {
         {images.map((image, index) => (
           <div
             key={image.id}
-            className="group relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer"
-            onClick={() => {
-              setSelectedImageIndex(index);
-              setLightboxOpen(true);
-            }}
+            className="group relative aspect-square rounded-lg overflow-hidden bg-muted"
           >
             <img
               src={image.image_url}
               alt={`Public image ${image.image_index + 1}`}
-              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform group-hover:scale-105 cursor-pointer"
               loading="lazy"
               decoding="async"
               fetchPriority="low"
+              onClick={() => {
+                setSelectedImageIndex(index);
+                setLightboxOpen(true);
+              }}
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
+            
+            {/* Like button */}
+            <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1">
+              <Button
+                size="sm"
+                variant={image.user_has_liked ? "default" : "secondary"}
+                className="h-8 px-2 bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleLike(image.id, image.user_has_liked);
+                }}
+              >
+                <Heart
+                  className={`w-4 h-4 ${image.user_has_liked ? "fill-current text-red-500" : ""}`}
+                />
+                <span className="ml-1 text-sm font-medium">{image.like_count}</span>
+              </Button>
+            </div>
           </div>
         ))}
       </div>

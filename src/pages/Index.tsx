@@ -10,6 +10,8 @@ import AddLinkDialog from "@/components/AddLinkDialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DiscoverFeed from "@/components/DiscoverFeed";
+import BottomNav from "@/components/BottomNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Link {
   id: string;
@@ -27,8 +29,10 @@ const Index = () => {
   const [filteredLinks, setFilteredLinks] = useState<Link[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [addLinkDialogOpen, setAddLinkDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -131,7 +135,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
@@ -147,7 +151,7 @@ const Index = () => {
               className="gap-2"
             >
               <LogOut className="w-4 h-4" />
-              Keluar
+              {!isMobile && "Keluar"}
             </Button>
           </div>
         </div>
@@ -162,17 +166,19 @@ const Index = () => {
                 <TabsTrigger value="links">Link Saya</TabsTrigger>
                 <TabsTrigger value="discover">Discover</TabsTrigger>
               </TabsList>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/gallery")}
-                  className="gap-2"
-                >
-                  <Image className="w-4 h-4" />
-                  Galeri
-                </Button>
-                <AddLinkDialog userId={user.id} onLinkAdded={fetchLinks} />
-              </div>
+              {!isMobile && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/gallery")}
+                    className="gap-2"
+                  >
+                    <Image className="w-4 h-4" />
+                    Galeri
+                  </Button>
+                  <AddLinkDialog userId={user.id} onLinkAdded={fetchLinks} />
+                </div>
+              )}
             </div>
 
             <TabsContent value="links" className="space-y-6 mt-0">
@@ -232,6 +238,22 @@ const Index = () => {
           </Tabs>
         </div>
       </main>
+
+      {/* Bottom Navigation for Mobile */}
+      <BottomNav
+        onLinkClick={() => setAddLinkDialogOpen(true)}
+        onUploadClick={() => {}}
+      />
+
+      {/* Hidden AddLinkDialog for mobile bottom nav */}
+      {isMobile && (
+        <AddLinkDialog
+          userId={user.id}
+          onLinkAdded={fetchLinks}
+          open={addLinkDialogOpen}
+          onOpenChange={setAddLinkDialogOpen}
+        />
+      )}
     </div>
   );
 };

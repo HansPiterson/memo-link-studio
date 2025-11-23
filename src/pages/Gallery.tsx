@@ -7,6 +7,8 @@ import { ArrowLeft, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UploadImagesDialog from "@/components/UploadImagesDialog";
 import ImageLightbox from "@/components/ImageLightbox";
+import BottomNav from "@/components/BottomNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,8 +45,10 @@ const Gallery = () => {
   const [loading, setLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -153,20 +157,22 @@ const Gallery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/")}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Kembali
-            </Button>
+            {!isMobile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Kembali
+              </Button>
+            )}
             <div className="flex items-center gap-2">
               <ImageIcon className="w-6 h-6" />
               <h1 className="text-xl font-semibold">Galeri Instagram</h1>
@@ -185,7 +191,9 @@ const Gallery = () => {
                 {images.length} gambar tersimpan
               </p>
             </div>
-            <UploadImagesDialog onUploadComplete={fetchGalleryImages} />
+            {!isMobile && (
+              <UploadImagesDialog onUploadComplete={fetchGalleryImages} />
+            )}
           </div>
 
           {images.length === 0 ? (
@@ -307,6 +315,21 @@ const Gallery = () => {
           )}
         </div>
       </main>
+
+      {/* Bottom Navigation for Mobile */}
+      <BottomNav
+        onLinkClick={() => {}}
+        onUploadClick={() => setUploadDialogOpen(true)}
+      />
+
+      {/* Hidden UploadImagesDialog for mobile bottom nav */}
+      {isMobile && (
+        <UploadImagesDialog
+          onUploadComplete={fetchGalleryImages}
+          open={uploadDialogOpen}
+          onOpenChange={setUploadDialogOpen}
+        />
+      )}
 
       {images.length > 0 && (
         <ImageLightbox

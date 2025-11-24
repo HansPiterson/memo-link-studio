@@ -32,8 +32,8 @@ const BottomNav = ({ onLinkClick, onUploadClick, onHomeClick }: BottomNavProps) 
     {
       icon: Link2,
       label: "Link",
-      onClick: onLinkClick,
-      isActive: false,
+      onClick: () => navigate("/my-links"),
+      isActive: location.pathname === "/my-links",
     },
     {
       icon: Upload,

@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Image as ImageIcon, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageLightbox from "./ImageLightbox";
-import { Button } from "./ui/button";
 
 interface PublicImage {
   id: string;
@@ -163,57 +162,41 @@ const DiscoverFeed = () => {
 
   return (
     <>
-      {/* Pinterest-style Masonry Grid */}
-      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4">
+      {/* Clean Masonry Grid */}
+      <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-2">
         {images.map((image, index) => (
           <div
             key={image.id}
-            className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-muted mb-4"
+            className="group relative break-inside-avoid rounded-xl overflow-hidden bg-muted mb-2 cursor-pointer"
+            onClick={() => {
+              setSelectedImageIndex(index);
+              setLightboxOpen(true);
+            }}
           >
             <img
               src={image.image_url}
-              alt={`Public image ${image.image_index + 1}`}
-              className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+              alt={`Image ${image.image_index + 1}`}
+              className="w-full h-auto object-cover"
               loading="lazy"
               decoding="async"
-              fetchPriority="low"
-              onClick={() => {
-                setSelectedImageIndex(index);
-                setLightboxOpen(true);
-              }}
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors pointer-events-none rounded-2xl" />
             
-            {/* Like button - appears on hover */}
-            <div className="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-9 px-3 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleLike(image.id, image.user_has_liked);
-                }}
-              >
-                <Heart
-                  className={`w-4 h-4 ${image.user_has_liked ? "fill-red-500 text-red-500" : ""}`}
-                />
-                <span className="ml-1.5 text-sm font-medium">{image.like_count}</span>
-              </Button>
-            </div>
-
-            {/* Save button - Pinterest style */}
-            <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                size="sm"
-                className="h-9 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                Save
-              </Button>
-            </div>
+            {/* Minimal overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+            {/* Like button - bottom left on hover */}
+            <button
+              className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white/90 text-black text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleLike(image.id, image.user_has_liked);
+              }}
+            >
+              <Heart
+                className={`w-3.5 h-3.5 ${image.user_has_liked ? "fill-red-500 text-red-500" : ""}`}
+              />
+              {image.like_count > 0 && <span>{image.like_count}</span>}
+            </button>
           </div>
         ))}
       </div>
@@ -221,7 +204,7 @@ const DiscoverFeed = () => {
       {images.length > 0 && (
         <ImageLightbox
           imageUrl={images[selectedImageIndex]?.image_url}
-          alt={`Public image ${images[selectedImageIndex]?.image_index + 1}`}
+          alt={`Image ${images[selectedImageIndex]?.image_index + 1}`}
           open={lightboxOpen}
           onOpenChange={setLightboxOpen}
           onPrevious={() => setSelectedImageIndex(prev => Math.max(0, prev - 1))}

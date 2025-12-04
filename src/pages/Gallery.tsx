@@ -157,7 +157,7 @@ const Gallery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
@@ -316,9 +316,8 @@ const Gallery = () => {
         </div>
       </main>
 
-      {/* Bottom Navigation for Mobile */}
+      {/* Bottom Navigation */}
       <BottomNav
-        onLinkClick={() => {}}
         onUploadClick={() => setUploadDialogOpen(true)}
       />
 

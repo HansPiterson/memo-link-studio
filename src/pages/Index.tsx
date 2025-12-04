@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Link2 } from "lucide-react";
+import { Search } from "lucide-react";
 import DiscoverFeed from "@/components/DiscoverFeed";
 import BottomNav from "@/components/BottomNav";
-import { useIsMobile } from "@/hooks/use-mobile";
+import UploadImagesDialog from "@/components/UploadImagesDialog";
+import { Input } from "@/components/ui/input";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -40,11 +40,6 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -61,40 +56,49 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Link2 className="w-6 h-6" />
-              <h1 className="text-xl font-semibold">LinkKeeper</h1>
+    <div className="min-h-screen bg-background pb-24">
+      {/* Pinterest-style Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/30">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-4">
+            {/* Logo */}
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">P</span>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              {!isMobile && "Keluar"}
-            </Button>
+
+            {/* Search Bar */}
+            <div className="flex-1 max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 h-12 rounded-full bg-muted/50 border-0 focus-visible:ring-2 focus-visible:ring-primary/20"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <DiscoverFeed />
-        </div>
+      <main className="container mx-auto px-2 sm:px-4 py-6">
+        <DiscoverFeed />
       </main>
 
-      {/* Bottom Navigation for Mobile */}
-      <BottomNav
-        onLinkClick={() => {}}
-        onUploadClick={() => {}}
-        onHomeClick={() => navigate("/")}
+      {/* Bottom Navigation */}
+      <BottomNav onUploadClick={() => setUploadDialogOpen(true)} />
+
+      {/* Upload Dialog */}
+      <UploadImagesDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onUploadComplete={() => {
+          setUploadDialogOpen(false);
+          window.location.reload();
+        }}
       />
     </div>
   );

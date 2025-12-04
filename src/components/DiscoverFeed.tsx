@@ -163,16 +163,17 @@ const DiscoverFeed = () => {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Pinterest-style Masonry Grid */}
+      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4">
         {images.map((image, index) => (
           <div
             key={image.id}
-            className="group relative aspect-square rounded-lg overflow-hidden bg-muted"
+            className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-muted mb-4"
           >
             <img
               src={image.image_url}
               alt={`Public image ${image.image_index + 1}`}
-              className="w-full h-full object-cover transition-transform group-hover:scale-105 cursor-pointer"
+              className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
               loading="lazy"
               decoding="async"
               fetchPriority="low"
@@ -181,23 +182,36 @@ const DiscoverFeed = () => {
                 setLightboxOpen(true);
               }}
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors pointer-events-none rounded-2xl" />
             
-            {/* Like button */}
-            <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1">
+            {/* Like button - appears on hover */}
+            <div className="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 size="sm"
-                variant={image.user_has_liked ? "default" : "secondary"}
-                className="h-8 px-2 bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                variant="secondary"
+                className="h-9 px-3 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleToggleLike(image.id, image.user_has_liked);
                 }}
               >
                 <Heart
-                  className={`w-4 h-4 ${image.user_has_liked ? "fill-current text-red-500" : ""}`}
+                  className={`w-4 h-4 ${image.user_has_liked ? "fill-red-500 text-red-500" : ""}`}
                 />
-                <span className="ml-1 text-sm font-medium">{image.like_count}</span>
+                <span className="ml-1.5 text-sm font-medium">{image.like_count}</span>
+              </Button>
+            </div>
+
+            {/* Save button - Pinterest style */}
+            <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                size="sm"
+                className="h-9 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                Save
               </Button>
             </div>
           </div>
